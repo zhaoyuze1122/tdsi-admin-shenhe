@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>TDSI Minecraft Server - 管理员审核</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: url('https://pic.imgdb.cn/item/67107d3ed29ded1a8c491967.png') no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 40px 35px;
+            width: 100%;
+            max-width: 720px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .title {
+            text-align: center;
+            color: #4fc3f7;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #ccc;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .question-box {
+            display: none;
+        }
+
+        .question-box.active {
+            display: block;
+        }
+
+        .q-title {
+            color: #fff;
+            font-size: 20px;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .options label {
+            display: block;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 12px 0;
+            padding: 14px 20px;
+            border-radius: 10px;
+            color: #eee;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .options label:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #4fc3f7;
+        }
+
+        .options input {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .next-btn {
+            width: 100%;
+            background: #4fc3f7;
+            color: #111;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 16px;
+            margin-top: 25px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .next-btn:hover {
+            background: #39a5d8;
+        }
+
+        .result {
+            text-align: center;
+            font-size: 18px;
+            padding: 30px 20px;
+            border-radius: 15px;
+            display: none;
+        }
+
+        .result.pass {
+            background: rgba(27, 94, 32, 0.5);
+            color: #a5d6a7;
+            border: 1px solid #2e7d32;
+        }
+
+        .result.fail {
+            background: rgba(183, 28, 28, 0.5);
+            color: #ffcdd2;
+            border: 1px solid #c62828;
+        }
+
+        .progress {
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .code {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffeb3b;
+            margin: 15px 0;
+            letter-spacing: 2px;
+        }
+
+        /* 腐竹查询面板 */
+        .admin-panel {
+            margin-top: 30px;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            display: none;
+        }
+
+        .admin-panel h4 {
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .admin-input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            margin-bottom: 10px;
+        }
+
+        .admin-btn {
+            background: #ff5722;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        #checkResult {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="glass">
+        <h1 class="title">TDSI Minecraft Server</h1>
+        <div class="subtitle">管理员申请 · 答题审核</div>
+        <div class="progress" id="progress">进度：1 / 11</div>
+
+        <form id="examForm">
+            <div class="question-box active" data-q="1">
+                <div class="q-title">1. 你是否知道服务器禁止作弊、X-ray、矿追等违规行为？</div>
+                <div class="options">
+                    <label><input type="radio" name="q1" value="10" required> 知道，严格遵守</label>
+                    <label><input type="radio" name="q1" value="0"> 不知道</label>
+                </div>
+            </div>
+
+            <div class="question-box" data-q="2">
+                <div class="q-title">2. 遇到玩家吵架、骂人，你应该怎么做？</div>
+                <div class="options">
+                    <label><input type="radio" name="q2" value="10"> 劝阻、警告，不听按规则处理</label>
+                    <label><input type="radio" name="q2" value="0"> 跟着一起骂</label>
+                    <label><input type="radio" name="q2" value="0"> 不管</label>
+                </div>
+            </div>
+
+            <div class="question-box" data-q="3">
+                <div class="q-title">3. 发现玩家使用外挂，正确做法是？</div>
+                <div class="options">
+                    <label><input type="radio" name="q3" value="10"> 立即封禁并上报腐竹</label>
+                    <label><input type="radio" name="q3" value="0"> 假装没看见</label>
+                    <label><input type="radio" name="q3" value="0"> 私聊问他怎么开的</label>
+                </div>
+            </div>
+
+            <div class="question-box" data-q="4">
+                <div class="q-title">4. 管理员可以给自己刷物品、附魔吗？</div>
+                <div class="options">
+                    <label><input type="radio" name="q4" value="0"> 可以，我是管理</label>
+                    <label><input type="radio" name="q4" value="10"> 绝对不可以，公平公正</label>
+                </div>
+            </div>
+
+            <div class="question-box" data-q="5">
+                <div class="q-title">5. 玩家被误封，你会？</div>
+                <div class="options">
+                    <label><input type="radio" name="q5" value="10"> 核查记录，解封并道歉</label>
+                    <label><input type="radio" name="q5" value="0"> 不理</label>
+                    <label><input type="radio" name="q5" value="0"> 继续封</label>
+                </div>
+            </div>
+
+            <div class="question-box" data-q="6">
+                <div class="q-title">6. 你是否愿意长期在线、维护服务器秩序？</div>
+                <div class="options">
+                    <label><input type="radio" name="q6" value="10"> 愿意，认真负责</label>
+                    <label><input type="radio" name="q6" value="0"> 随便玩玩</label>
+                </div>
+            </div>
+
+            <div class="question-box" data-q="7">
+                <div class="q-title">7. 服务器指令、插件配置你愿意学习吗？</div>
+                <div class="options">
+                    <label><input type="radio" name="q7" value="10"> 愿意，主动学习</label>
+                    <label><input type="radio" name="q7" value="0"> 不想学</label>
+                </div>
+            </div>
+
+            <div class="question-box" data-q="8">
+                <div class="q-title">8. 有人卡BUG刷物品，你会？</div>
+                <div class="options">
+                    <label><input type="radio" name="q8" value="10"> 禁止、回档、处罚</label>
+                    <label><input type="radio" name="q8" value="0"> 一起刷</label>
+                    <label><input type="radio" name="q8" value="0"> 无所谓</label>
+                </div>
+            </div>
+
+            <div class="question-box" data-q="9">
+                <div class="q-title">9. 管理之间闹矛盾，你会？</div>
+                <div class="options">
+                    <label><input type="radio" name="q9" value="10"> 理性沟通，上报腐竹解决</label>
+                    <label><input type="radio" name="q9" value="0"> 拉帮结派</label>
+                </div>
+            </div>
+
+            <div class="question-box" data-q="10">
+                <div class="q-title">10. 你承诺不滥用权限、不泄露管理信息吗？</div>
+                <div class="options">
+                    <label><input type="radio" name="q10" value="10"> 承诺，遵守所有规定</label>
+                    <label><input type="radio" name="q10" value="0"> 不承诺</label>
+                </div>
+            </div>
+
+            <div class="question-box" data-q="11">
+                <div class="q-title">11. 管理员能不能给玩家刷东西？</div>
+                <div class="options">
+                    <label><input type="radio" name="q11" value="10"> A：不能刷物品，只能刷村民、狐狸等生物</label>
+                    <label><input type="radio" name="q11" value="0"> B：我想刷什么就刷什么</label>
+                </div>
+            </div>
+
+            <button type="button" class="next-btn" id="nextBtn">下一题</button>
+        </form>
+
+        <div id="result" class="result"></div>
+
+        <!-- 腐竹查询面板 -->
+        <div class="admin-panel" id="adminPanel">
+            <h4>🔑 腐竹核验码查询</h4>
+            <input type="text" class="admin-input" id="codeInput" placeholder="输入审核码">
+            <button class="admin-btn" onclick="checkCode()">查询是否有效</button>
+            <div id="checkResult"></div>
+        </div>
+    </div>
+
+    <script>
+        let current = 1;
+        const total = 11;
+        const form = document.getElementById('examForm');
+        const nextBtn = document.getElementById('nextBtn');
+        const resultBox = document.getElementById('result');
+        const progress = document.getElementById('progress');
+        const passScore = 90;
+
+        // 生成唯一码
+        function generateCode() {
+            let code = '';
+            const chars = 'ABCDEFGHJKMNPQRSTWXYZ23456789';
+            for (let i = 0; i < 8; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+
+        // 本地存储（码只能用一次）
+        let usedCodes = JSON.parse(localStorage.getItem('usedCodes')) || [];
+
+        function showQuestion(n) {
+            document.querySelectorAll('.question-box').forEach(q => q.classList.remove('active'));
+            document.querySelector(`.question-box[data-q="${n}"]`).classList.add('active');
+            progress.textContent = `进度：${n} / ${total}`;
+        }
+
+        nextBtn.addEventListener('click', () => {
+            const currentBox = document.querySelector(`.question-box[data-q="${current}"]`);
+            const checked = currentBox.querySelector('input[type="radio"]:checked');
+            
+            if (!checked) {
+                alert('请选择一个答案！');
+                return;
+            }
+
+            if (current < total) {
+                current++;
+                showQuestion(current);
+            } else {
+                let score = 0;
+                const formData = new FormData(form);
+                for (let v of formData.values()) score += parseInt(v);
+
+                form.style.display = 'none';
+                nextBtn.style.display = 'none';
+                progress.style.display = 'none';
+                resultBox.style.display = 'block';
+                document.getElementById('adminPanel').style.display = 'block';
+
+                if (score >= passScore) {
+                    let code = generateCode();
+                    usedCodes.push(code);
+                    localStorage.setItem('usedCodes', JSON.stringify(usedCodes));
+
+                    resultBox.className = 'result pass';
+                    resultBox.innerHTML = `
+                        <strong>✅ 审核通过！</strong><br><br>
+                        得分：${score} / 110<br><br>
+                        <div class="code">${code}</div>
+                        <strong>请截图此页面发送给腐竹</strong><br>
+                        此码仅有效1次，使用后立即失效！
+                    `;
+                } else {
+                    resultBox.className = 'result fail';
+                    resultBox.innerHTML = `
+                        <strong>❌ 审核未通过</strong><br><br>
+                        得分：${score} / 110<br>
+                        需要 ≥90 分才能通过<br><br>
+                        请刷新页面重新答题。
+                    `;
+                }
+            }
+        });
+
+        // 腐竹查询码是否有效
+        function checkCode() {
+            let input = document.getElementById('codeInput').value.trim();
+            let res = document.getElementById('checkResult');
+
+            if (!input) {
+                res.style.color = 'orange';
+                res.textContent = '请输入审核码';
+                return;
+            }
+
+            if (usedCodes.includes(input)) {
+                // 失效
+                usedCodes = usedCodes.filter(c => c !== input);
+                localStorage.setItem('usedCodes', JSON.stringify(usedCodes));
+                res.style.color = 'red';
+                res.textContent = '❌ 码已使用，已销毁，无效';
+            } else {
+                res.style.color = 'green';
+                res.textContent = '✅ 码有效，未使用';
+            }
+        }
+    </script>
+</body>
+</html>
