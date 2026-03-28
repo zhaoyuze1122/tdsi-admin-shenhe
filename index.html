@@ -2,390 +2,1463 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TDSI Minecraft Server - 管理员审核</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: "Microsoft YaHei", Arial, sans-serif;
         }
+
+        :root {
+            --glass-bg: rgba(15, 23, 42, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --accent-cyan: #22d3ee;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-glow: rgba(34, 211, 238, 0.3);
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --danger: #dc2626;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
 
         body {
             min-height: 100vh;
-            background: url('https://pic.imgdb.cn/item/67107d3ed29ded1a8c491967.png') no-repeat center center fixed;
+            font-family: 'Noto Sans SC', "Microsoft YaHei", sans-serif;
+            background: url('https://kimi-web-img.moonshot.cn/img/4kwallpapers.com/92f475fec2e3f10aa5a96696d1df2fa05c73eece.jpg') no-repeat center center fixed;
             background-size: cover;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            position: relative;
+            overflow-x: hidden;
         }
 
-        .glass {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(22px);
-            -webkit-backdrop-filter: blur(22px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 40px 35px;
+        /* 背景遮罩增强可读性 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-width: 720px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            height: 100%;
+            background: rgba(15, 23, 42, 0.4);
+            z-index: -1;
+        }
+
+        /* 动态背景粒子效果 */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 20s infinite linear;
+            box-shadow: 0 0 10px var(--accent-cyan);
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { transform: translateY(-10vh) translateX(100px); opacity: 0; }
+        }
+
+        /* 主容器 - 优化 Glassmorphism */
+        .glass-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+                0 0 100px rgba(34, 211, 238, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 顶部光效装饰 */
+        .glass-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(34, 211, 238, 0.15) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 16px;
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 10px 30px rgba(34, 211, 238, 0.3);
+            animation: glow 3s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 10px 30px rgba(34, 211, 238, 0.3); }
+            50% { box-shadow: 0 10px 40px rgba(34, 211, 238, 0.5); }
         }
 
         .title {
-            text-align: center;
-            color: #4fc3f7;
-            margin-bottom: 10px;
-            font-size: 28px;
+            color: var(--text-primary);
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
 
         .subtitle {
-            text-align: center;
-            color: #ccc;
-            margin-bottom: 30px;
+            color: var(--text-secondary);
             font-size: 16px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        /* 合同警示条 */
+        .contract-alert {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.2), rgba(239, 68, 68, 0.1));
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            z-index: 1;
+            animation: borderPulse 2s infinite;
+        }
+
+        @keyframes borderPulse {
+            0%, 100% { border-color: rgba(239, 68, 68, 0.3); box-shadow: 0 0 0 rgba(239, 68, 68, 0); }
+            50% { border-color: rgba(239, 68, 68, 0.6); box-shadow: 0 0 20px rgba(239, 68, 68, 0.2); }
+        }
+
+        .contract-alert-icon {
+            font-size: 24px;
+            animation: shake 0.5s infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-10deg); }
+            75% { transform: rotate(10deg); }
+        }
+
+        .contract-alert-text {
+            color: #fecaca;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .contract-alert-text strong {
+            color: #f87171;
+            font-weight: 600;
+        }
+
+        /* 进度条 */
+        .progress-container {
+            margin-bottom: 32px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 3px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .progress-text {
+            text-align: center;
+            color: var(--accent-cyan);
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        /* 问题容器 */
+        .question-wrapper {
+            position: relative;
+            min-height: 400px;
+            z-index: 1;
         }
 
         .question-box {
             display: none;
+            animation: fadeIn 0.4s ease-out;
         }
 
         .question-box.active {
             display: block;
         }
 
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .question-number {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            color: #0f172a;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
         .q-title {
-            color: #fff;
-            font-size: 20px;
-            margin-bottom: 25px;
-            line-height: 1.5;
+            color: var(--text-primary);
+            font-size: 22px;
+            font-weight: 500;
+            margin-bottom: 24px;
+            line-height: 1.6;
+            padding-left: 4px;
         }
 
-        .options label {
-            display: block;
-            background: rgba(255, 255, 255, 0.1);
-            margin: 12px 0;
-            padding: 14px 20px;
-            border-radius: 10px;
-            color: #eee;
-            cursor: pointer;
-            transition: 0.2s;
-            border: 1px solid transparent;
+        .q-title .highlight {
+            color: var(--accent-cyan);
+            font-weight: 600;
         }
 
-        .options label:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: #4fc3f7;
+        .q-title .danger {
+            color: var(--danger);
+            font-weight: 600;
         }
 
-        .options input {
-            margin-right: 10px;
-            transform: scale(1.2);
-        }
-
-        .next-btn {
+        /* 合同文本框样式 */
+        .contract-textarea {
             width: 100%;
-            background: #4fc3f7;
-            color: #111;
-            border: none;
-            padding: 15px;
+            min-height: 200px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
-            font-size: 16px;
-            margin-top: 25px;
+            padding: 16px;
+            color: var(--text-primary);
+            font-family: 'Noto Sans SC', sans-serif;
+            font-size: 15px;
+            line-height: 1.6;
+            resize: vertical;
+            transition: all 0.3s;
+            margin-bottom: 16px;
+        }
+
+        .contract-textarea:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1);
+        }
+
+        .contract-textarea::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .contract-hint {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 3px solid var(--warning);
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            color: #fcd34d;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        /* 选项样式 - 卡片式设计 */
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-card {
+            position: relative;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 18px 20px;
             cursor: pointer;
-            transition: 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
         }
 
-        .next-btn:hover {
-            background: #39a5d8;
+        .option-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: var(--accent-cyan);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
         }
 
-        .result {
-            text-align: center;
-            font-size: 18px;
-            padding: 30px 20px;
-            border-radius: 15px;
+        .option-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(34, 211, 238, 0.3);
+            transform: translateX(4px);
+        }
+
+        .option-card.selected {
+            background: rgba(34, 211, 238, 0.1);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.2);
+        }
+
+        .option-card.selected::before {
+            transform: scaleY(1);
+        }
+
+        .option-card input {
             display: none;
         }
 
-        .result.pass {
-            background: rgba(27, 94, 32, 0.5);
-            color: #a5d6a7;
-            border: 1px solid #2e7d32;
+        .radio-indicator {
+            width: 22px;
+            height: 22px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
         }
 
-        .result.fail {
-            background: rgba(183, 28, 28, 0.5);
-            color: #ffcdd2;
-            border: 1px solid #c62828;
+        .option-card.selected .radio-indicator {
+            border-color: var(--accent-cyan);
+            background: var(--accent-cyan);
         }
 
-        .progress {
+        .radio-indicator::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #0f172a;
+            border-radius: 50%;
+            transform: scale(0);
+            transition: transform 0.2s ease;
+        }
+
+        .option-card.selected .radio-indicator::after {
+            transform: scale(1);
+        }
+
+        .option-text {
+            color: var(--text-secondary);
+            font-size: 16px;
+            font-weight: 400;
+            transition: color 0.3s;
+        }
+
+        .option-card.selected .option-text {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* 按钮样式 */
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 16px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            color: #0f172a;
+            box-shadow: 0 4px 20px rgba(34, 211, 238, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(34, 211, 238, 0.4);
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: grayscale(0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            color: white;
+            box-shadow: 0 4px 20px rgba(220, 38, 38, 0.3);
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(220, 38, 38, 0.4);
+        }
+
+        /* 结果页面 */
+        .result-container {
+            display: none;
             text-align: center;
-            color: #aaa;
-            margin-bottom: 20px;
-            font-size: 14px;
+            padding: 20px;
+            animation: fadeIn 0.6s ease-out;
         }
 
-        .code {
-            font-size: 24px;
-            font-weight: bold;
-            color: #ffeb3b;
-            margin: 15px 0;
+        .result-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+
+        .result-icon.pass {
+            background: rgba(16, 185, 129, 0.2);
+            border: 2px solid var(--success);
+            color: var(--success);
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .result-icon.fail {
+            background: rgba(239, 68, 68, 0.2);
+            border: 2px solid var(--error);
+            color: var(--error);
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.3);
+        }
+
+        .result-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .result-score {
+            font-size: 48px;
+            font-weight: 700;
+            margin: 20px 0;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .result-desc {
+            color: var(--text-secondary);
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        /* 审核码展示 */
+        .code-container {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            margin: 24px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .code-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .code-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
             letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+
+        .code-value {
+            font-family: 'Courier New', monospace;
+            font-size: 32px;
+            font-weight: 700;
+            color: #fbbf24;
+            letter-spacing: 4px;
+            text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+            user-select: all;
+            cursor: pointer;
+        }
+
+        .code-hint {
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--warning);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        /* 合同确认区域 */
+        .contract-confirm {
+            background: rgba(220, 38, 38, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 24px;
+            text-align: left;
+        }
+
+        .contract-confirm-title {
+            color: #f87171;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .contract-confirm-text {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.8;
+            margin-bottom: 16px;
+        }
+
+        .contract-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .contract-checkbox:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .contract-checkbox input {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--danger);
+        }
+
+        .contract-checkbox span {
+            color: var(--text-primary);
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .contract-checkbox .fine-amount {
+            color: var(--danger);
+            font-weight: 700;
         }
 
         /* 腐竹查询面板 */
         .admin-panel {
-            margin-top: 30px;
-            padding: 15px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
+            margin-top: 32px;
+            padding: 24px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
             display: none;
         }
 
-        .admin-panel h4 {
-            color: #fff;
-            margin-bottom: 10px;
+        .admin-title {
+            color: var(--text-primary);
+            font-size: 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .admin-input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
         }
 
         .admin-input {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            border: none;
-            margin-bottom: 10px;
+            flex: 1;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 15px;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+        }
+
+        .admin-input:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1);
+        }
+
+        .admin-input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
         }
 
         .admin-btn {
-            background: #ff5722;
-            color: #fff;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: white;
             border: none;
-            padding: 10px;
-            border-radius: 8px;
+            border-radius: 12px;
+            font-weight: 600;
             cursor: pointer;
-            width: 100%;
+            transition: all 0.3s;
+            white-space: nowrap;
         }
 
-        #checkResult {
-            margin-top: 10px;
-            font-weight: bold;
+        .admin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(249, 115, 22, 0.3);
+        }
+
+        .check-result {
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .check-result.valid {
+            display: block;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .check-result.invalid {
+            display: block;
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--error);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 640px) {
+            .glass-container {
+                padding: 24px;
+                margin: 10px;
+            }
+
+            .title {
+                font-size: 24px;
+            }
+
+            .q-title {
+                font-size: 18px;
+            }
+
+            .code-value {
+                font-size: 24px;
+                letter-spacing: 2px;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .admin-input-group {
+                flex-direction: column;
+            }
+
+            .contract-textarea {
+                min-height: 150px;
+            }
+        }
+
+        /* 提示消息 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px 20px;
+            color: var(--text-primary);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            animation: slideInRight 0.3s ease-out;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .toast.show {
+            display: flex;
+        }
+
+        .toast-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .toast-icon.warning {
+            background: var(--warning);
+            color: #000;
+        }
+
+        .toast-icon.error {
+            background: var(--error);
+            color: #fff;
+        }
+
+        /* 字数统计 */
+        .char-count {
+            text-align: right;
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .char-count.warning {
+            color: var(--warning);
+        }
+
+        .char-count.error {
+            color: var(--error);
         }
     </style>
 </head>
-
 <body>
-    <div class="glass">
-        <h1 class="title">TDSI Minecraft Server</h1>
-        <div class="subtitle">管理员申请 · 答题审核</div>
-        <div class="progress" id="progress">进度：1 / 11</div>
+    <!-- 背景粒子 -->
+    <div class="particles" id="particles"></div>
+
+    <!-- 提示消息 -->
+    <div class="toast" id="toast">
+        <div class="toast-icon warning">!</div>
+        <span id="toastMsg">请选择一个答案</span>
+    </div>
+
+    <div class="glass-container">
+        <div class="header">
+            <div class="logo">⛏️</div>
+            <h1 class="title">TDSI Minecraft Server</h1>
+            <div class="subtitle">管理员申请 · 答题审核系统</div>
+        </div>
+
+        <!-- 合同警示 -->
+        <div class="contract-alert">
+            <div class="contract-alert-icon">⚠️</div>
+            <div class="contract-alert-text">
+                <strong>重要提示：</strong>本审核包含<span class="danger">法律约束力条款</span>。
+                通过审核需签署电子协议，违反规定将面临<span class="danger">100元人民币违约金</span>处罚。
+                请认真对待每一项题目。
+            </div>
+        </div>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 8%"></div>
+            </div>
+            <div class="progress-text" id="progressText">问题 1 / 12</div>
+        </div>
 
         <form id="examForm">
-            <div class="question-box active" data-q="1">
-                <div class="q-title">1. 你是否知道服务器禁止作弊、X-ray、矿追等违规行为？</div>
-                <div class="options">
-                    <label><input type="radio" name="q1" value="10" required> 知道，严格遵守</label>
-                    <label><input type="radio" name="q1" value="0"> 不知道</label>
-                </div>
+            <div class="question-wrapper" id="questionWrapper">
+                <!-- 问题将通过 JS 动态生成 -->
             </div>
 
-            <div class="question-box" data-q="2">
-                <div class="q-title">2. 遇到玩家吵架、骂人，你应该怎么做？</div>
-                <div class="options">
-                    <label><input type="radio" name="q2" value="10"> 劝阻、警告，不听按规则处理</label>
-                    <label><input type="radio" name="q2" value="0"> 跟着一起骂</label>
-                    <label><input type="radio" name="q2" value="0"> 不管</label>
-                </div>
+            <div class="btn-group" id="btnGroup">
+                <button type="button" class="btn btn-secondary" id="prevBtn" style="display: none;">上一题</button>
+                <button type="button" class="btn btn-primary" id="nextBtn">下一题</button>
             </div>
-
-            <div class="question-box" data-q="3">
-                <div class="q-title">3. 发现玩家使用外挂，正确做法是？</div>
-                <div class="options">
-                    <label><input type="radio" name="q3" value="10"> 立即封禁并上报腐竹</label>
-                    <label><input type="radio" name="q3" value="0"> 假装没看见</label>
-                    <label><input type="radio" name="q3" value="0"> 私聊问他怎么开的</label>
-                </div>
-            </div>
-
-            <div class="question-box" data-q="4">
-                <div class="q-title">4. 管理员可以给自己刷物品、附魔吗？</div>
-                <div class="options">
-                    <label><input type="radio" name="q4" value="0"> 可以，我是管理</label>
-                    <label><input type="radio" name="q4" value="10"> 绝对不可以，公平公正</label>
-                </div>
-            </div>
-
-            <div class="question-box" data-q="5">
-                <div class="q-title">5. 玩家被误封，你会？</div>
-                <div class="options">
-                    <label><input type="radio" name="q5" value="10"> 核查记录，解封并道歉</label>
-                    <label><input type="radio" name="q5" value="0"> 不理</label>
-                    <label><input type="radio" name="q5" value="0"> 继续封</label>
-                </div>
-            </div>
-
-            <div class="question-box" data-q="6">
-                <div class="q-title">6. 你是否愿意长期在线、维护服务器秩序？</div>
-                <div class="options">
-                    <label><input type="radio" name="q6" value="10"> 愿意，认真负责</label>
-                    <label><input type="radio" name="q6" value="0"> 随便玩玩</label>
-                </div>
-            </div>
-
-            <div class="question-box" data-q="7">
-                <div class="q-title">7. 服务器指令、插件配置你愿意学习吗？</div>
-                <div class="options">
-                    <label><input type="radio" name="q7" value="10"> 愿意，主动学习</label>
-                    <label><input type="radio" name="q7" value="0"> 不想学</label>
-                </div>
-            </div>
-
-            <div class="question-box" data-q="8">
-                <div class="q-title">8. 有人卡BUG刷物品，你会？</div>
-                <div class="options">
-                    <label><input type="radio" name="q8" value="10"> 禁止、回档、处罚</label>
-                    <label><input type="radio" name="q8" value="0"> 一起刷</label>
-                    <label><input type="radio" name="q8" value="0"> 无所谓</label>
-                </div>
-            </div>
-
-            <div class="question-box" data-q="9">
-                <div class="q-title">9. 管理之间闹矛盾，你会？</div>
-                <div class="options">
-                    <label><input type="radio" name="q9" value="10"> 理性沟通，上报腐竹解决</label>
-                    <label><input type="radio" name="q9" value="0"> 拉帮结派</label>
-                </div>
-            </div>
-
-            <div class="question-box" data-q="10">
-                <div class="q-title">10. 你承诺不滥用权限、不泄露管理信息吗？</div>
-                <div class="options">
-                    <label><input type="radio" name="q10" value="10"> 承诺，遵守所有规定</label>
-                    <label><input type="radio" name="q10" value="0"> 不承诺</label>
-                </div>
-            </div>
-
-            <div class="question-box" data-q="11">
-                <div class="q-title">11. 管理员能不能给玩家刷东西？</div>
-                <div class="options">
-                    <label><input type="radio" name="q11" value="10"> A：不能刷物品，只能刷村民、狐狸等生物</label>
-                    <label><input type="radio" name="q11" value="0"> B：我想刷什么就刷什么</label>
-                </div>
-            </div>
-
-            <button type="button" class="next-btn" id="nextBtn">下一题</button>
         </form>
 
-        <div id="result" class="result"></div>
+        <div id="resultContainer" class="result-container">
+            <div class="result-icon" id="resultIcon"></div>
+            <div class="result-title" id="resultTitle"></div>
+            <div class="result-score" id="resultScore"></div>
+            <div class="result-desc" id="resultDesc"></div>
+            
+            <div class="code-container" id="codeContainer" style="display: none;">
+                <div class="code-label">审核通过码</div>
+                <div class="code-value" id="codeValue" onclick="copyCode()"></div>
+                <div class="code-hint">
+                    <span>⚠️</span>
+                    <span>截图保存或点击复制，发送给腐竹，仅限使用一次</span>
+                </div>
+            </div>
+
+            <!-- 合同确认 -->
+            <div class="contract-confirm" id="contractConfirm" style="display: none;">
+                <div class="contract-confirm-title">
+                    <span>📜</span>
+                    <span>管理员电子协议确认</span>
+                </div>
+                <div class="contract-confirm-text">
+                    您已阅读并同意《TDSI服务器管理员服务协议》。作为管理员，您承诺：<br>
+                    • 严格遵守服务器所有规章制度<br>
+                    • 公正执法，不滥用职权<br>
+                    • 保守服务器管理机密信息<br>
+                    • 如违反上述条款，同意支付<span class="fine-amount">100元人民币</span>作为违约金
+                </div>
+                <label class="contract-checkbox">
+                    <input type="checkbox" id="contractCheck">
+                    <span>我已阅读并同意以上条款，确认违反将支付<span class="fine-amount">100元违约金</span></span>
+                </label>
+            </div>
+
+            <button class="btn btn-primary" id="reloadBtn" onclick="location.reload()" style="margin-top: 20px; width: 100%; display: none;">
+                重新答题
+            </button>
+        </div>
 
         <!-- 腐竹查询面板 -->
         <div class="admin-panel" id="adminPanel">
-            <h4>🔑 腐竹核验码查询</h4>
-            <input type="text" class="admin-input" id="codeInput" placeholder="输入审核码">
-            <button class="admin-btn" onclick="checkCode()">查询是否有效</button>
-            <div id="checkResult"></div>
+            <div class="admin-title">
+                <span>🔐</span>
+                <span>腐竹核验码查询</span>
+            </div>
+            <div class="admin-input-group">
+                <input type="text" class="admin-input" id="codeInput" placeholder="输入 8 位审核码" maxlength="8">
+                <button class="admin-btn" onclick="checkCode()">核验</button>
+            </div>
+            <div class="check-result" id="checkResult"></div>
         </div>
     </div>
 
     <script>
-        let current = 1;
-        const total = 11;
-        const form = document.getElementById('examForm');
-        const nextBtn = document.getElementById('nextBtn');
-        const resultBox = document.getElementById('result');
-        const progress = document.getElementById('progress');
-        const passScore = 90;
+        // 问题数据 - 增加合同拟定题（第12题）
+        const questions = [
+            {
+                id: 1,
+                type: 'choice',
+                title: "你是否清楚了解服务器禁止作弊、X-ray、矿追等违规行为？",
+                options: [
+                    { value: 10, text: "清楚了解，将严格遵守并主动监督" },
+                    { value: 0, text: "不清楚具体规定" },
+                    { value: 0, text: "知道但不认为需要严格执行" }
+                ]
+            },
+            {
+                id: 2,
+                type: 'choice',
+                title: "遇到玩家吵架、骂人，你应该怎么做？",
+                options: [
+                    { value: 10, text: "立即劝阻、警告，不听从者按规则禁言/封禁处理" },
+                    { value: 0, text: "视情况而定，有时可以不管" },
+                    { value: 0, text: "跟着一起骂，维护朋友" }
+                ]
+            },
+            {
+                id: 3,
+                type: 'choice',
+                title: "发现玩家使用外挂，正确做法是？",
+                options: [
+                    { value: 10, text: "立即封禁并上报腐竹，保留证据" },
+                    { value: 0, text: "先警告一次，再给机会" },
+                    { value: 0, text: "假装没看见，多一事不如少一事" }
+                ]
+            },
+            {
+                id: 4,
+                type: 'choice',
+                title: "管理员可以给自己或朋友刷物品、附魔吗？",
+                options: [
+                    { value: 10, text: "绝对不可以，管理员必须公平公正，违者视为滥用职权" },
+                    { value: 0, text: "可以给自己刷，但不能给朋友刷" },
+                    { value: 0, text: "可以，管理员有特权" }
+                ]
+            },
+            {
+                id: 5,
+                type: 'choice',
+                title: "玩家被误封，你会如何处理？",
+                options: [
+                    { value: 10, text: "立即核查记录，确认误封后解封并公开道歉" },
+                    { value: 0, text: "等玩家申诉后再处理" },
+                    { value: 0, text: "坚持不认错，维持封禁" }
+                ]
+            },
+            {
+                id: 6,
+                type: 'choice',
+                title: "你是否愿意长期在线、积极维护服务器秩序？",
+                options: [
+                    { value: 10, text: "愿意，每周至少在线20小时，认真负责" },
+                    { value: 5, text: "有时间就上，不能保证时长" },
+                    { value: 0, text: "随便玩玩，不想承担太多责任" }
+                ]
+            },
+            {
+                id: 7,
+                type: 'choice',
+                title: "对于服务器指令、插件配置，你的态度是？",
+                options: [
+                    { value: 10, text: "主动学习，熟练掌握所有管理指令" },
+                    { value: 5, text: "需要时再学，现在不想花时间" },
+                    { value: 0, text: "不想学，太复杂了" }
+                ]
+            },
+            {
+                id: 8,
+                type: 'choice',
+                title: "发现有人利用BUG刷物品，你会？",
+                options: [
+                    { value: 10, text: "立即制止，回档处理，并视情节给予封禁处罚" },
+                    { value: 0, text: "提醒一下，不强制回档" },
+                    { value: 0, text: "一起刷，反正没人知道" }
+                ]
+            },
+            {
+                id: 9,
+                type: 'choice',
+                title: "管理团队内部发生矛盾，你会如何处理？",
+                options: [
+                    { value: 10, text: "理性沟通，无法解决时上报腐竹仲裁" },
+                    { value: 0, text: "拉帮结派，孤立对方" },
+                    { value: 0, text: "在玩家面前争吵，公开矛盾" }
+                ]
+            },
+            {
+                id: 10,
+                type: 'choice',
+                title: "你承诺不滥用权限、不泄露管理群信息、不私自给予玩家特殊待遇吗？",
+                options: [
+                    { value: 10, text: "郑重承诺，如有违反愿接受处罚（包括违约金）" },
+                    { value: 0, text: "看情况，有时候可以通融" },
+                    { value: 0, text: "不承诺，我觉得规定太严格" }
+                ]
+            },
+            {
+                id: 11,
+                type: 'choice',
+                title: "关于管理员权限使用，以下哪项是正确的？",
+                options: [
+                    { value: 10, text: "A：不能随意刷物品，只能刷村民、狐狸等生物用于服务器建设" },
+                    { value: 0, text: "B：想刷什么就刷什么，我是管理员我有权" },
+                    { value: 0, text: "C：可以给活跃玩家刷点小礼物作为奖励" }
+                ]
+            },
+            {
+                id: 12,
+                type: 'contract',
+                title: "【最终题】请拟定一份《TDSI服务器管理员守则》合同条款，明确列出<span class='danger'>3条核心规定</span>及<span class='danger'>违约后果（100元罚款）</span>",
+                placeholder: `请在此输入你拟定的合同条款，必须包含：
+1. 至少3条管理员必须遵守的核心规定
+2. 明确的违约处罚条款（100元人民币）
+3. 条款要具体、可执行
+
+示例格式：
+第一条：管理员不得滥用职权...
+违反以上任一条款，须支付违约金100元...`,
+                minLength: 100,
+                validate: (text) => {
+                    // 检查是否包含关键要素
+                    const hasFine = text.includes('100') || text.includes('一百') || text.includes('违约金') || text.includes('罚款');
+                    const hasRules = (text.match(/第[一二三四五六七八九十\d]条/g) || []).length >= 3 || 
+                                    (text.match(/\d+\./g) || []).length >= 3 ||
+                                    (text.match(/[①②③④⑤]/g) || []).length >= 3;
+                    const hasLength = text.length >= 100;
+                    return hasFine && hasRules && hasLength;
+                }
+            }
+        ];
+
+        // 状态管理
+        let currentQuestion = 0;
+        const totalQuestions = questions.length;
+        const passScore = 95; // 提高及格线到95分（因为总分120分）
+        const answers = new Array(totalQuestions).fill(null);
+        let usedCodes = JSON.parse(localStorage.getItem('tdsi_used_codes_v2')) || [];
+        let contractText = '';
+
+        // 初始化背景粒子
+        function initParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        // 渲染问题
+        function renderQuestion(index) {
+            const wrapper = document.getElementById('questionWrapper');
+            const q = questions[index];
+            
+            if (q.type === 'contract') {
+                // 合同题特殊渲染
+                wrapper.innerHTML = `
+                    <div class="question-box active" data-index="${index}" data-type="contract">
+                        <span class="question-number">最终挑战 ${index + 1}</span>
+                        <div class="q-title">${q.title}</div>
+                        <div class="contract-hint">
+                            💡 提示：本题为<span class="danger">必答题</span>，必须包含3条以上具体规定和100元违约处罚条款，字数不少于100字。未达标将直接导致审核失败。
+                        </div>
+                        <textarea class="contract-textarea" id="contractInput" 
+                            placeholder="${q.placeholder}" 
+                            oninput="updateCharCount(this)">${contractText}</textarea>
+                        <div class="char-count" id="charCount">已输入 0 字 | 最低要求 100 字</div>
+                    </div>
+                `;
+                updateCharCount(document.getElementById('contractInput'));
+            } else {
+                // 选择题渲染
+                wrapper.innerHTML = `
+                    <div class="question-box active" data-index="${index}" data-type="choice">
+                        <span class="question-number">Question ${index + 1}</span>
+                        <div class="q-title">${q.title}</div>
+                        <div class="options">
+                            ${q.options.map((opt, i) => `
+                                <label class="option-card ${answers[index] === opt.value ? 'selected' : ''}" 
+                                       onclick="selectOption(${index}, ${opt.value}, this)">
+                                    <input type="radio" name="q${index}" value="${opt.value}" 
+                                           ${answers[index] === opt.value ? 'checked' : ''}>
+                                    <div class="radio-indicator"></div>
+                                    <span class="option-text">${opt.text}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            updateProgress();
+            updateButtons();
+        }
+
+        // 字数统计
+        function updateCharCount(textarea) {
+            const count = textarea.value.length;
+            const counter = document.getElementById('charCount');
+            contractText = textarea.value;
+            answers[currentQuestion] = textarea.value;
+            
+            counter.textContent = `已输入 ${count} 字 | 最低要求 100 字`;
+            
+            if (count < 50) {
+                counter.className = 'char-count error';
+            } else if (count < 100) {
+                counter.className = 'char-count warning';
+            } else {
+                counter.className = 'char-count';
+                counter.style.color = 'var(--success)';
+            }
+        }
+
+        // 选择选项
+        function selectOption(qIndex, value, element) {
+            answers[qIndex] = value;
+            
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            
+            if (qIndex < totalQuestions - 1) {
+                setTimeout(() => {
+                    nextQuestion();
+                }, 400);
+            }
+        }
+
+        // 更新进度
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / totalQuestions) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressText').textContent = `问题 ${currentQuestion + 1} / ${totalQuestions}`;
+        }
+
+        // 更新按钮状态
+        function updateButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            prevBtn.style.display = currentQuestion === 0 ? 'none' : 'block';
+            
+            if (currentQuestion === totalQuestions - 1) {
+                nextBtn.textContent = '提交审核';
+                nextBtn.className = 'btn btn-danger';
+            } else {
+                nextBtn.textContent = '下一题';
+                nextBtn.className = 'btn btn-primary';
+            }
+        }
+
+        // 验证当前题
+        function validateCurrent() {
+            const q = questions[currentQuestion];
+            
+            if (q.type === 'contract') {
+                const text = document.getElementById('contractInput')?.value || '';
+                if (!q.validate(text)) {
+                    showToast('合同条款不符合要求！必须包含3条规定和100元违约条款，且字数≥100', 'error');
+                    return false;
+                }
+            } else {
+                if (answers[currentQuestion] === null) {
+                    showToast('请选择一个答案');
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // 下一题
+        function nextQuestion() {
+            if (!validateCurrent()) return;
+            
+            if (currentQuestion < totalQuestions - 1) {
+                currentQuestion++;
+                renderQuestion(currentQuestion);
+            } else {
+                submitExam();
+            }
+        }
+
+        // 上一题
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                renderQuestion(currentQuestion);
+            }
+        }
+
+        // 提交考试
+        function submitExam() {
+            // 计算得分（合同题满分20分，其他每题10分）
+            let score = 0;
+            questions.forEach((q, i) => {
+                if (q.type === 'contract') {
+                    // 合同题根据质量给分
+                    const text = answers[i] || '';
+                    const hasFine = text.includes('100') || text.includes('一百') || text.includes('违约金');
+                    const hasRules = (text.match(/第[一二三四五六七八九十\d]条/g) || []).length >= 3 || 
+                                    (text.match(/\d+\./g) || []).length >= 3;
+                    const hasLength = text.length >= 100;
+                    
+                    if (hasFine && hasRules && hasLength) score += 20;
+                    else if (hasFine && hasLength) score += 10;
+                    else if (hasLength) score += 5;
+                } else {
+                    score += (answers[i] || 0);
+                }
+            });
+            
+            const passed = score >= passScore;
+            
+            document.getElementById('examForm').style.display = 'none';
+            document.getElementById('progressContainer').style.display = 'none';
+            document.querySelector('.contract-alert').style.display = 'none';
+            
+            const resultContainer = document.getElementById('resultContainer');
+            resultContainer.style.display = 'block';
+            document.getElementById('adminPanel').style.display = 'block';
+            
+            const resultIcon = document.getElementById('resultIcon');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultScore = document.getElementById('resultScore');
+            const resultDesc = document.getElementById('resultDesc');
+            const codeContainer = document.getElementById('codeContainer');
+            const contractConfirm = document.getElementById('contractConfirm');
+            const reloadBtn = document.getElementById('reloadBtn');
+            
+            resultScore.textContent = `${score} / 120`;
+            
+            if (passed) {
+                const code = generateCode();
+                usedCodes.push({
+                    code: code,
+                    contract: answers[totalQuestions - 1], // 保存合同内容
+                    date: new Date().toISOString(),
+                    used: false
+                });
+                localStorage.setItem('tdsi_used_codes_v2', JSON.stringify(usedCodes));
+                
+                resultIcon.className = 'result-icon pass';
+                resultIcon.innerHTML = '✓';
+                resultTitle.textContent = '审核通过！';
+                resultDesc.innerHTML = '恭喜你通过了管理员申请审核<br>请仔细阅读下方协议并确认';
+                codeContainer.style.display = 'block';
+                document.getElementById('codeValue').textContent = code;
+                contractConfirm.style.display = 'block';
+                reloadBtn.style.display = 'none';
+                
+                // 必须勾选合同才能看到码
+                document.getElementById('codeValue').style.filter = 'blur(4px)';
+                document.getElementById('contractCheck').addEventListener('change', function() {
+                    if (this.checked) {
+                        document.getElementById('codeValue').style.filter = 'none';
+                        showToast('协议已确认，请保存审核码');
+                    } else {
+                        document.getElementById('codeValue').style.filter = 'blur(4px)';
+                    }
+                });
+                
+                createConfetti();
+            } else {
+                resultIcon.className = 'result-icon fail';
+                resultIcon.innerHTML = '✕';
+                resultTitle.textContent = '审核未通过';
+                resultDesc.innerHTML = `需要 ${passScore} 分才能通过审核<br>合同题占20分，请确保条款完整且包含违约金说明`;
+                codeContainer.style.display = 'none';
+                contractConfirm.style.display = 'none';
+                reloadBtn.style.display = 'block';
+            }
+        }
 
         // 生成唯一码
         function generateCode() {
-            let code = '';
             const chars = 'ABCDEFGHJKMNPQRSTWXYZ23456789';
+            let code = '';
             for (let i = 0; i < 8; i++) {
                 code += chars.charAt(Math.floor(Math.random() * chars.length));
             }
             return code;
         }
 
-        // 本地存储（码只能用一次）
-        let usedCodes = JSON.parse(localStorage.getItem('usedCodes')) || [];
-
-        function showQuestion(n) {
-            document.querySelectorAll('.question-box').forEach(q => q.classList.remove('active'));
-            document.querySelector(`.question-box[data-q="${n}"]`).classList.add('active');
-            progress.textContent = `进度：${n} / ${total}`;
+        // 复制码
+        function copyCode() {
+            const code = document.getElementById('codeValue').textContent;
+            if (code.includes('•')) return; // 模糊状态不复制
+            
+            navigator.clipboard.writeText(code).then(() => {
+                showToast('审核码已复制到剪贴板');
+            });
         }
 
-        nextBtn.addEventListener('click', () => {
-            const currentBox = document.querySelector(`.question-box[data-q="${current}"]`);
-            const checked = currentBox.querySelector('input[type="radio"]:checked');
+        // 腐竹核验码（增强版，可查看合同内容）
+        function checkCode() {
+            const input = document.getElementById('codeInput').value.trim().toUpperCase();
+            const resultDiv = document.getElementById('checkResult');
             
-            if (!checked) {
-                alert('请选择一个答案！');
+            if (!input || input.length !== 8) {
+                resultDiv.className = 'check-result invalid';
+                resultDiv.innerHTML = '❌ 请输入有效的 8 位审核码';
                 return;
             }
-
-            if (current < total) {
-                current++;
-                showQuestion(current);
-            } else {
-                let score = 0;
-                const formData = new FormData(form);
-                for (let v of formData.values()) score += parseInt(v);
-
-                form.style.display = 'none';
-                nextBtn.style.display = 'none';
-                progress.style.display = 'none';
-                resultBox.style.display = 'block';
-                document.getElementById('adminPanel').style.display = 'block';
-
-                if (score >= passScore) {
-                    let code = generateCode();
-                    usedCodes.push(code);
-                    localStorage.setItem('usedCodes', JSON.stringify(usedCodes));
-
-                    resultBox.className = 'result pass';
-                    resultBox.innerHTML = `
-                        <strong>✅ 审核通过！</strong><br><br>
-                        得分：${score} / 110<br><br>
-                        <div class="code">${code}</div>
-                        <strong>请截图此页面发送给腐竹</strong><br>
-                        此码仅有效1次，使用后立即失效！
-                    `;
+            
+            const record = usedCodes.find(c => c.code === input);
+            
+            if (record) {
+                if (record.used) {
+                    resultDiv.className = 'check-result invalid';
+                    resultDiv.innerHTML = '❌ 该码已被使用（核销时间：' + new Date(record.usedDate).toLocaleString() + '）';
                 } else {
-                    resultBox.className = 'result fail';
-                    resultBox.innerHTML = `
-                        <strong>❌ 审核未通过</strong><br><br>
-                        得分：${score} / 110<br>
-                        需要 ≥90 分才能通过<br><br>
-                        请刷新页面重新答题。
+                    // 标记为已使用
+                    record.used = true;
+                    record.usedDate = new Date().toISOString();
+                    localStorage.setItem('tdsi_used_codes_v2', JSON.stringify(usedCodes));
+                    
+                    resultDiv.className = 'check-result valid';
+                    resultDiv.innerHTML = `
+                        ✅ <strong>码有效，已核销</strong><br>
+                        <small>生成时间：${new Date(record.date).toLocaleString()}</small><br>
+                        <hr style="margin: 8px 0; border-color: rgba(16,185,129,0.3);">
+                        <strong>合同条款摘要：</strong><br>
+                        <div style="max-height: 100px; overflow-y: auto; text-align: left; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px; margin-top: 4px; font-size: 12px;">
+                            ${record.contract.substring(0, 200)}...
+                        </div>
                     `;
                 }
+            } else {
+                resultDiv.className = 'check-result invalid';
+                resultDiv.innerHTML = '❌ 码无效或不存在';
+            }
+        }
+
+        // 显示提示
+        function showToast(msg, type = 'warning') {
+            const toast = document.getElementById('toast');
+            const icon = toast.querySelector('.toast-icon');
+            document.getElementById('toastMsg').textContent = msg;
+            
+            icon.className = 'toast-icon ' + type;
+            icon.textContent = type === 'error' ? '✕' : '!';
+            
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+
+        // Confetti 效果
+        function createConfetti() {
+            const colors = ['#22d3ee', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.style.position = 'fixed';
+                    confetti.style.width = '10px';
+                    confetti.style.height = '10px';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.top = '-10px';
+                    confetti.style.borderRadius = '50%';
+                    confetti.style.zIndex = '9999';
+                    confetti.style.pointerEvents = 'none';
+                    document.body.appendChild(confetti);
+                    
+                    const duration = 2000 + Math.random() * 2000;
+                    confetti.animate([
+                        { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
+                        { transform: `translateY(${window.innerHeight}px) rotate(${Math.random() * 360}deg)`, opacity: 0 }
+                    ], {
+                        duration: duration,
+                        easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                    }).onfinish = () => confetti.remove();
+                }, i * 50);
+            }
+        }
+
+        // 事件监听
+        document.getElementById('nextBtn').addEventListener('click', nextQuestion);
+        document.getElementById('prevBtn').addEventListener('click', prevQuestion);
+
+        // 键盘导航
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('examForm').style.display === 'none') return;
+            if (document.activeElement.tagName === 'TEXTAREA') return; // 编辑合同时不触发
+            
+            if (e.key === 'ArrowRight' || e.key === 'Enter') {
+                e.preventDefault();
+                nextQuestion();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevQuestion();
             }
         });
 
-        // 腐竹查询码是否有效
-        function checkCode() {
-            let input = document.getElementById('codeInput').value.trim();
-            let res = document.getElementById('checkResult');
-
-            if (!input) {
-                res.style.color = 'orange';
-                res.textContent = '请输入审核码';
-                return;
-            }
-
-            if (usedCodes.includes(input)) {
-                // 失效
-                usedCodes = usedCodes.filter(c => c !== input);
-                localStorage.setItem('usedCodes', JSON.stringify(usedCodes));
-                res.style.color = 'red';
-                res.textContent = '❌ 码已使用，已销毁，无效';
-            } else {
-                res.style.color = 'green';
-                res.textContent = '✅ 码有效，未使用';
-            }
-        }
+        // 初始化
+        initParticles();
+        renderQuestion(0);
     </script>
 </body>
 </html>
